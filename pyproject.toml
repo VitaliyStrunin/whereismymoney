@@ -5,3 +5,35 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[tool.ruff]
+target-version = "py312"
+
+line-length = 88
+
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # Ошибки стиля кода (pycodestyle)
+    "W",   # Предупреждения стиля кода (pycodestyle)
+    "F",   # Логические ошибки и неиспользуемые импорты 
+    "I",   # Автоматическая сортировка импортов 
+    "B",   # Поиск потенциальных багов и уязвимостей 
+]
+
+# Исключения (правила, которые временно или постоянно отключены)
+ignore = [
+    "E501", # Игнорировать длину строки (форматировщик сам перенесет то, что нужно)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
