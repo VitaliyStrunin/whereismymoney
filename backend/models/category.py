@@ -1,5 +1,6 @@
-from database.db import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from backend.database.db import Base
 
 
 class Category(Base):

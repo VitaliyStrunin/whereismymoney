@@ -1,5 +1,6 @@
-from database.db import Base
 from sqlalchemy import Column, ForeignKey, Table
+
+from backend.database.db import Base
 
 expense_tags = Table(
     "expense_tags",

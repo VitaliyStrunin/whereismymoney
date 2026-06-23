@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from database.db import Base
 from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from backend.database.db import Base
 
 
 class Expense(Base):

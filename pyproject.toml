@@ -1,10 +1,18 @@
 [project]
 name = "whereismymoney"
 version = "0.1.0"
-description = "Add your description here"
+description = "Expenses tracking app"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "flask>=3.1.3",
+    "psycopg>=3.3.4",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "sqlalchemy>=2.0.51",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -21,19 +29,24 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
-    "E",   # Ошибки стиля кода (pycodestyle)
-    "W",   # Предупреждения стиля кода (pycodestyle)
-    "F",   # Логические ошибки и неиспользуемые импорты 
-    "I",   # Автоматическая сортировка импортов 
-    "B",   # Поиск потенциальных багов и уязвимостей 
+    "E",  
+    "W",   
+    "F",   
+    "I",   
+    "B",   
 ]
 
-# Исключения (правила, которые временно или постоянно отключены)
 ignore = [
-    "E501", # Игнорировать длину строки (форматировщик сам перенесет то, что нужно)
+    "E501", 
 ]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.15.18",
+]
