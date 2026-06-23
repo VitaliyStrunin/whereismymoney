@@ -48,8 +48,9 @@ def get_category(category_id: int):
         try:
             category = service.get_by_id(category_id)
         except CategoryNotFoundError:
-            return jsonify({"error": "CategoryNotFound"}), 404
-    return jsonify(category_to_dict(category))
+            return jsonify({"error": "Category not found"}), 404
+
+    return jsonify(category_to_dict(category)), 200
 
 
 @categories_bp.patch("/<int:category_id>")
@@ -68,7 +69,7 @@ def update_category(category_id: int):
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
 
-    return jsonify(category_to_dict(category))
+    return jsonify(category_to_dict(category)), 200
 
 
 @categories_bp.delete("/<int:category_id>")
@@ -79,9 +80,5 @@ def delete_category(category_id: int):
             service.delete_category(category_id)
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
+
     return jsonify({"success": "Category deleted successfully"}), 200
-
-
-@categories_bp.get("/health")
-def health():
-    return jsonify({"sussess": "Everything is ok"})
