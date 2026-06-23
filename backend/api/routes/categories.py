@@ -63,7 +63,6 @@ def update_category(category_id: int):
 
     with session_maker() as session:
         service = CategoryService(session)
-
         try:
             category = service.update_category(category_id, name)
         except CategoryNotFoundError:

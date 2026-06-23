@@ -4,3 +4,7 @@ class CategoryNotFoundError(Exception):
 
 class TagNotFoundError(Exception):
     pass
+
+
+class ExpenseNotFoundError(Exception):
+    pass
