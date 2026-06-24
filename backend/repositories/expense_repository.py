@@ -51,11 +51,7 @@ class ExpenseRepository:
     ) -> Expense:
         update_fields = update_data.model_dump(exclude_unset=True)
 
-        simple_fields = {
-            "amount",
-            "description",
-            "expense_date",
-        }
+        simple_fields = {"amount", "description", "expense_date"}
 
         for field, value in update_fields.items():
             if field in simple_fields:
