@@ -21,9 +21,9 @@ def get_tags():
         service = TagService(session)
         tags = service.get_list(limit, offset)
 
-    return jsonify([
-        tag_to_dict(tag) for tag in tags
-    ])
+        return jsonify([
+            tag_to_dict(tag) for tag in tags
+        ])
 
 
 @tags_bp.post("")
@@ -38,7 +38,7 @@ def create_tag():
         service = TagService(session)
         tag = service.create_tag(name)
 
-    return jsonify(tag_to_dict(tag)), 201
+        return jsonify(tag_to_dict(tag)), 201
 
 
 @tags_bp.get("/<int:tag_id>")
@@ -50,7 +50,7 @@ def get_tag(tag_id: int):
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-    return jsonify(tag_to_dict(tag)), 200
+        return jsonify(tag_to_dict(tag)), 200
 
 
 @tags_bp.patch("/<int:tag_id>")
@@ -68,7 +68,7 @@ def update_tag(tag_id: int):
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-    return jsonify(tag_to_dict(updated_tag))
+        return jsonify(tag_to_dict(updated_tag))
 
 
 @tags_bp.delete("/<int:tag_id>")
@@ -80,4 +80,4 @@ def delete_tag(tag_id: int):
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-    return jsonify({"success": "Tag deleted successfully"}), 200
+        return jsonify({"success": "Tag deleted successfully"}), 200

@@ -1,6 +1,7 @@
 from flask import Flask
 
 from backend.api.routes.categories import categories_bp
+from backend.api.routes.expenses import expenses_bp
 from backend.api.routes.tags import tags_bp
 
 
@@ -8,4 +9,5 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.register_blueprint(categories_bp)
     app.register_blueprint(tags_bp)
+    app.register_blueprint(expenses_bp)
     return app

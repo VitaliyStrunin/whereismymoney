@@ -21,9 +21,9 @@ def get_categories():
         service = CategoryService(session)
         categories = service.get_list(limit=limit, offset=offset)
 
-    return jsonify([
-        category_to_dict(category) for category in categories
-    ])
+        return jsonify([
+            category_to_dict(category) for category in categories
+        ])
 
 
 @categories_bp.post("")
@@ -38,7 +38,7 @@ def create_category():
         service = CategoryService(session)
         category = service.create_category(name)
 
-    return jsonify(category_to_dict(category)), 201
+        return jsonify(category_to_dict(category)), 201
 
 
 @categories_bp.get("/<int:category_id>")
@@ -50,7 +50,7 @@ def get_category(category_id: int):
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
 
-    return jsonify(category_to_dict(category)), 200
+        return jsonify(category_to_dict(category)), 200
 
 
 @categories_bp.patch("/<int:category_id>")
@@ -68,7 +68,7 @@ def update_category(category_id: int):
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
 
-    return jsonify(category_to_dict(category)), 200
+        return jsonify(category_to_dict(category)), 200
 
 
 @categories_bp.delete("/<int:category_id>")
@@ -80,4 +80,4 @@ def delete_category(category_id: int):
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
 
-    return jsonify({"success": "Category deleted successfully"}), 200
+        return jsonify({"success": "Category deleted successfully"}), 200

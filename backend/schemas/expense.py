@@ -9,7 +9,7 @@ class CreateExpenseDTO(BaseModel):
     description: str = Field(default="", max_length=255)
     expense_date: date
     category_id: int = Field(gt=0)
-    tags: list[int] = Field(default_factory=list)
+    tag_ids: list[int] = Field(default_factory=list)
 
 
 class UpdateExpenseDTO(BaseModel):
@@ -17,4 +17,4 @@ class UpdateExpenseDTO(BaseModel):
     description: str | None = Field(default=None, max_length=255)
     expense_date: date | None
     category_id: int | None = Field(default=None, gt=0)
-    tags: list[int] | None = Field(default=None)
+    tag_ids: list[int] | None = Field(default=None)

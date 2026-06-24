@@ -15,8 +15,8 @@ def expense_to_dict(expense: Expense) -> dict:
         "id": expense.id,
         "amount": expense.amount,
         "description": expense.description,
-        "expense_date": expense.description,
-        "category_id": expense.description,
+        "expense_date": expense.expense_date,
+        "category_id": expense.category_id,
         "category": category_to_dict(expense.category),
         "tags": [
             tag_to_dict(tag) for tag in expense.tags
@@ -34,9 +34,9 @@ def get_expenses():
         service = ExpenseService(session)
         expenses = service.get_list(limit=limit, offset=offset)
 
-    return jsonify([
-        expense_to_dict(expense) for expense in expenses
-    ]), 200
+        return jsonify([
+            expense_to_dict(expense) for expense in expenses
+        ]), 200
 
 
 @expenses_bp.post("")
@@ -47,7 +47,7 @@ def create_expense():
         service = ExpenseService(session)
         expense = service.create_expense(create_data)
 
-    return jsonify(category_to_dict(expense)), 201
+        return jsonify(expense_to_dict(expense)), 201
 
 
 @expenses_bp.get("/<int:expense_id>")
@@ -58,7 +58,7 @@ def get_expense(expense_id: int):
             expense = service.get_by_id(expense_id)
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
-    return jsonify(expense_to_dict(expense)), 200
+        return jsonify(expense_to_dict(expense)), 200
 
 
 @expenses_bp.patch("/<int:expense_id>")
@@ -74,7 +74,7 @@ def update_expense(expense_id: int):
         except Exception:
             return jsonify({"error": "Bad request"}), 400
 
-    return jsonify(expense_to_dict(updated_expense)), 200
+        return jsonify(expense_to_dict(updated_expense)), 200
 
 
 @expenses_bp.delete("/<int:expense_id>")
@@ -85,4 +85,4 @@ def delete_expense(expense_id: int):
             service.delete_expense(expense_id)
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
-    return jsonify({"success": "Expense deleted successfully"}), 200
+        return jsonify({"success": "Expense deleted successfully"}), 200
