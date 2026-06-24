@@ -42,13 +42,30 @@ class ExpenseRepository:
         query = select(Expense).order_by(Expense.id).limit(limit).offset(offset)
         return list(self.session.scalars(query))
 
-    def update(self, expense: Expense, update_data: UpdateExpenseDTO) -> Expense:
-        update_fields = update_data.model_dump(mode="json", exclude_unset=True)
+    def update(
+        self,
+        expense: Expense,
+        update_data: UpdateExpenseDTO,
+        category: Category | None = None,
+        tags: list[Tag] | None = None,
+    ) -> Expense:
+        update_fields = update_data.model_dump(exclude_unset=True)
+
+        simple_fields = {
+            "amount",
+            "description",
+            "expense_date",
+        }
+
         for field, value in update_fields.items():
-            if hasattr(expense, field):
+            if field in simple_fields:
                 setattr(expense, field, value)
-            else:
-                raise ValueError(f"Invalid field: {field}")
+
+        if category is not None:
+            expense.category = category
+
+        if tags is not None:
+            expense.tags = tags
 
         self.session.flush()
         return expense
