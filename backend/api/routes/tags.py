@@ -2,14 +2,9 @@ from flask import Blueprint, jsonify, request
 
 from backend.core.exceptions import TagNotFoundError
 from backend.database.session import session_maker
-from backend.models.tag import Tag
 from backend.services.tag_service import TagService
 
 tags_bp = Blueprint("tags", __name__, url_prefix="/tags")
-
-
-def tag_to_dict(tag: Tag) -> dict:
-    return {"id": tag.id, "name": tag.name}
 
 
 @tags_bp.get("")
@@ -22,7 +17,7 @@ def get_tags():
         tags = service.get_list(limit, offset)
 
         return jsonify([
-            tag_to_dict(tag) for tag in tags
+            tag.to_dict() for tag in tags
         ])
 
 
@@ -38,7 +33,7 @@ def create_tag():
         service = TagService(session)
         tag = service.create_tag(name)
 
-        return jsonify(tag_to_dict(tag)), 201
+        return jsonify(tag.to_dict()), 201
 
 
 @tags_bp.get("/<int:tag_id>")
@@ -50,7 +45,7 @@ def get_tag(tag_id: int):
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-        return jsonify(tag_to_dict(tag)), 200
+        return jsonify(tag.to_dict()), 200
 
 
 @tags_bp.patch("/<int:tag_id>")
@@ -68,7 +63,7 @@ def update_tag(tag_id: int):
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-        return jsonify(tag_to_dict(updated_tag))
+        return jsonify(updated_tag.to_dict())
 
 
 @tags_bp.delete("/<int:tag_id>")

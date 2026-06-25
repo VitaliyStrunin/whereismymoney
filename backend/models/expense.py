@@ -17,3 +17,17 @@ class Expense(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
     category = relationship("Category", back_populates="expenses")
     tags = relationship("Tag", back_populates="expenses", secondary="expense_tags")
+
+    def expense_to_dict(self) -> dict:
+        expense_dict = {
+            "id": self.id,
+            "amount": self.amount,
+            "description": self.description,
+            "expense_date": self.expense_date,
+            "category_id": self.category_id,
+            "category": self.category,
+            "tags": [
+                tag.to_dict for tag in self.tags
+            ]
+        }
+        return expense_dict

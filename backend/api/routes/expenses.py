@@ -1,28 +1,10 @@
 from flask import Blueprint, jsonify, request
 
-from backend.api.routes.categories import category_to_dict
-from backend.api.routes.tags import tag_to_dict
 from backend.core.exceptions import ExpenseNotFoundError
 from backend.database.session import session_maker
-from backend.models.expense import Expense
 from backend.services.expense_service import ExpenseService
 
 expenses_bp = Blueprint("expenses", __name__, url_prefix="/expenses")
-
-
-def expense_to_dict(expense: Expense) -> dict:
-    expense_dict = {
-        "id": expense.id,
-        "amount": expense.amount,
-        "description": expense.description,
-        "expense_date": expense.expense_date,
-        "category_id": expense.category_id,
-        "category": category_to_dict(expense.category),
-        "tags": [
-            tag_to_dict(tag) for tag in expense.tags
-        ]
-    }
-    return expense_dict
 
 
 @expenses_bp.get("")
@@ -35,7 +17,7 @@ def get_expenses():
         expenses = service.get_list(limit=limit, offset=offset)
 
         return jsonify([
-            expense_to_dict(expense) for expense in expenses
+            expense.to_dict() for expense in expenses
         ]), 200
 
 
@@ -47,7 +29,7 @@ def create_expense():
         service = ExpenseService(session)
         expense = service.create_expense(create_data)
 
-        return jsonify(expense_to_dict(expense)), 201
+        return jsonify(expense.to_dict()), 201
 
 
 @expenses_bp.get("/<int:expense_id>")
@@ -58,7 +40,7 @@ def get_expense(expense_id: int):
             expense = service.get_by_id(expense_id)
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
-        return jsonify(expense_to_dict(expense)), 200
+        return jsonify(expense.to_dict()), 200
 
 
 @expenses_bp.patch("/<int:expense_id>")
@@ -74,7 +56,7 @@ def update_expense(expense_id: int):
         except Exception:
             return jsonify({"error": "Bad request"}), 400
 
-        return jsonify(expense_to_dict(updated_expense)), 200
+        return jsonify(updated_expense.to_dict()), 200
 
 
 @expenses_bp.delete("/<int:expense_id>")
