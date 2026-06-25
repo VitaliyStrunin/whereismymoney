@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from backend.models.category import Category
 from backend.models.expense import Expense
@@ -35,8 +35,15 @@ class ExpenseRepository:
         return expense
 
     def get_by_id(self, expense_id: int) -> Expense | None:
-        expense = self.session.get(Expense, expense_id)
-        return expense
+        query = (select(Expense)
+                 .where(Expense.id == expense_id)
+                 .options(
+                     joinedload(Expense.category),
+                     selectinload(Expense.tags)
+                    )
+                )
+
+        return self.session.scalar(query)
 
     def get_list(self, limit: int = 100, offset: int = 0) -> list[Expense]:
         query = select(Expense).order_by(Expense.id).limit(limit).offset(offset)
