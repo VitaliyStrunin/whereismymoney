@@ -7,9 +7,6 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from backend.models.category import Category
 from backend.models.expense import Expense
 from backend.models.tag import Tag
-from backend.schemas.expense import UpdateExpenseDTO
-
-_NOT_SET = object()
 
 
 class ExpenseRepository:
@@ -38,29 +35,35 @@ class ExpenseRepository:
         query = (select(Expense)
                  .where(Expense.id == expense_id)
                  .options(
-                     joinedload(Expense.category),
-                     selectinload(Expense.tags)
+                        joinedload(Expense.category),
+                        selectinload(Expense.tags),
                     )
                 )
 
         return self.session.scalar(query)
 
     def get_list(self, limit: int = 100, offset: int = 0) -> list[Expense]:
-        query = select(Expense).order_by(Expense.id).limit(limit).offset(offset)
+        query = (select(Expense)
+                 .options(
+                        joinedload(Expense.category),
+                        selectinload(Expense.tags),
+                 )
+                 .order_by(Expense.id)
+                 .limit(limit)
+                 .offset(offset)
+                 )
         return list(self.session.scalars(query))
 
     def update(
         self,
         expense: Expense,
-        update_data: UpdateExpenseDTO,
+        update_data: dict,
         category: Category | None = None,
         tags: list[Tag] | None = None,
     ) -> Expense:
-        update_fields = update_data.model_dump(exclude_unset=True)
-
         simple_fields = {"amount", "description", "expense_date"}
 
-        for field, value in update_fields.items():
+        for field, value in update_data.items():
             if field in simple_fields:
                 setattr(expense, field, value)
 

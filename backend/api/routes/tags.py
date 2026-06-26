@@ -1,7 +1,13 @@
 from flask import Blueprint, jsonify, request
 
+from backend.api.dependencies import get_db_session
 from backend.core.exceptions import TagNotFoundError
-from backend.database.session import session_maker
+from backend.schemas.tags import (
+    TagCreateDTO,
+    TagListQueryDTO,
+    TagResponseDTO,
+    TagUpdateDTO,
+)
 from backend.services.tag_service import TagService
 
 tags_bp = Blueprint("tags", __name__, url_prefix="/tags")
@@ -9,66 +15,60 @@ tags_bp = Blueprint("tags", __name__, url_prefix="/tags")
 
 @tags_bp.get("")
 def get_tags():
-    limit = request.args.get("limit", 100, type=int)
-    offset = request.args.get("offset", 0, type=int)
+    query_params = TagListQueryDTO.model_validate(request.args.to_dict())
 
-    with session_maker() as session:
+    with get_db_session() as session:
         service = TagService(session)
-        tags = service.get_list(limit, offset)
+        tags = service.get_list(query_params.limit, query_params.offset)
 
         return jsonify([
-            tag.to_dict() for tag in tags
+            TagResponseDTO.model_validate(tag).model_dump(mode="json") for tag in tags
         ])
 
 
 @tags_bp.post("")
 def create_tag():
-    data = request.get_json(silent=True) or {}
-    name = data.get("name")
+    tag_dto = TagCreateDTO.model_validate(request.get_json(silent=True) or {})
 
-    if not name:
-        return jsonify({"error": "name is required"}), 400
-
-    with session_maker() as session:
+    with get_db_session() as session:
         service = TagService(session)
-        tag = service.create_tag(name)
+        tag = service.create_tag(tag_dto.name)
+        response_dto = TagResponseDTO.model_validate(tag)
 
-        return jsonify(tag.to_dict()), 201
+        return jsonify(response_dto.model_dump(mode="json")), 201
 
 
 @tags_bp.get("/<int:tag_id>")
 def get_tag(tag_id: int):
-    with session_maker() as session:
+    with get_db_session() as session:
         service = TagService(session)
         try:
             tag = service.get_by_id(tag_id)
+            response_dto = TagResponseDTO.model_validate(tag)
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-        return jsonify(tag.to_dict()), 200
+        return jsonify(response_dto.model_dump(mode="json")), 200
 
 
 @tags_bp.patch("/<int:tag_id>")
 def update_tag(tag_id: int):
-    data = request.get_json(silent=True) or {}
-    name = data.get("name")
+    tag_dto = TagUpdateDTO.model_validate(request.get_json(silent=True) or {})
 
-    if name is None:
-        return jsonify({"error": "name is required"}), 400
-
-    with session_maker() as session:
+    with get_db_session() as session:
         service = TagService(session)
         try:
-            updated_tag = service.update_tag(tag_id, name)
+            updated_tag = service.update_tag(tag_id, tag_dto.name)
+            response_dto = TagResponseDTO.model_validate(updated_tag)
         except TagNotFoundError:
             return jsonify({"error": "Tag not found"}), 404
 
-        return jsonify(updated_tag.to_dict())
+        return jsonify(response_dto.model_dump(mode='json'))
 
 
 @tags_bp.delete("/<int:tag_id>")
 def delete_tag(tag_id: int):
-    with session_maker() as session:
+    with get_db_session() as session:
         service = TagService(session)
         try:
             service.delete_tag(tag_id)

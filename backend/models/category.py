@@ -8,7 +8,3 @@ class Category(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(index=True, nullable=False)
     expenses = relationship("Expense", back_populates="category")
-
-
-    def to_dict(self) -> dict:
-        return {"id": self.id, "name": self.name}

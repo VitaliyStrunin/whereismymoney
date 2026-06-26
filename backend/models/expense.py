@@ -11,23 +11,9 @@ class Expense(Base):
     __tablename__ = "expenses"
     id: Mapped[int] = mapped_column(primary_key=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
     expense_date: Mapped[date] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
     category = relationship("Category", back_populates="expenses")
     tags = relationship("Tag", back_populates="expenses", secondary="expense_tags")
-
-    def expense_to_dict(self) -> dict:
-        expense_dict = {
-            "id": self.id,
-            "amount": self.amount,
-            "description": self.description,
-            "expense_date": self.expense_date,
-            "category_id": self.category_id,
-            "category": self.category,
-            "tags": [
-                tag.to_dict for tag in self.tags
-            ]
-        }
-        return expense_dict

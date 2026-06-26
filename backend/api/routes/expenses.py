@@ -1,7 +1,13 @@
 from flask import Blueprint, jsonify, request
 
+from backend.api.dependencies import get_db_session
 from backend.core.exceptions import ExpenseNotFoundError
-from backend.database.session import session_maker
+from backend.schemas.expense import (
+    ExpenseCreateDTO,
+    ExpenseListQueryDTO,
+    ExpenseResponseDTO,
+    ExpenseUpdateDTO,
+)
 from backend.services.expense_service import ExpenseService
 
 expenses_bp = Blueprint("expenses", __name__, url_prefix="/expenses")
@@ -9,59 +15,68 @@ expenses_bp = Blueprint("expenses", __name__, url_prefix="/expenses")
 
 @expenses_bp.get("")
 def get_expenses():
-    limit = request.args.get("limit", 100, type=int)
-    offset = request.args.get("offset", 0, type=int)
+    query_params = ExpenseListQueryDTO.model_validate(request.args.to_dict())
 
-    with session_maker() as session:
+    with get_db_session() as session:
         service = ExpenseService(session)
-        expenses = service.get_list(limit=limit, offset=offset)
+        expenses = service.get_list(limit=query_params.limit, offset=query_params.offset)
 
         return jsonify([
-            expense.to_dict() for expense in expenses
+             ExpenseResponseDTO.model_validate(expense).model_dump(mode="json")
+             for expense in expenses
         ]), 200
 
 
 @expenses_bp.post("")
 def create_expense():
-    create_data = request.get_json(silent=True) or {}
+    create_dto = ExpenseCreateDTO.model_validate(request.get_json(silent=True) or {})
 
-    with session_maker() as session:
+    with get_db_session() as session:
         service = ExpenseService(session)
-        expense = service.create_expense(create_data)
+        expense = service.create_expense(create_dto.amount,
+                                         create_dto.description,
+                                         create_dto.expense_date,
+                                         create_dto.category_id,
+                                         create_dto.tag_ids,
+                                         )
+        response_dto = ExpenseResponseDTO.model_validate(expense)
 
-        return jsonify(expense.to_dict()), 201
+        return jsonify(response_dto.model_dump(mode='json')), 201
 
 
 @expenses_bp.get("/<int:expense_id>")
 def get_expense(expense_id: int):
-    with session_maker() as session:
+    with get_db_session() as session:
         service = ExpenseService(session)
         try:
             expense = service.get_by_id(expense_id)
+            response_dto = ExpenseResponseDTO.model_validate(expense)
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
-        return jsonify(expense.to_dict()), 200
+        return jsonify(response_dto.model_dump(mode='json')), 200
 
 
 @expenses_bp.patch("/<int:expense_id>")
 def update_expense(expense_id: int):
-    update_data = request.get_json(silent=True) or {}
+    update_dto = ExpenseUpdateDTO.model_validate(request.get_json(silent=True) or {})
+    update_data = update_dto.model_dump(exclude_unset=True)
 
-    with session_maker() as session:
+    with get_db_session() as session:
         service = ExpenseService(session)
         try:
             updated_expense = service.update_expense(expense_id, update_data)
+            response_dto = ExpenseResponseDTO.model_validate(updated_expense)
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
         except Exception:
             return jsonify({"error": "Bad request"}), 400
 
-        return jsonify(updated_expense.to_dict()), 200
+        return jsonify(response_dto.model_dump(mode='json')), 200
 
 
 @expenses_bp.delete("/<int:expense_id>")
 def delete_expense(expense_id: int):
-    with session_maker() as session:
+    with get_db_session() as session:
         service = ExpenseService(session)
         try:
             service.delete_expense(expense_id)

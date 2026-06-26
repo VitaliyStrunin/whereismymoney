@@ -20,7 +20,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option("sqlalchemy.url", settings.db_url)
+configured_url = config.get_main_option("sqlalchemy.url")
+
+if not configured_url or configured_url == "driver://user:pass@localhost/dbname":
+    config.set_main_option("sqlalchemy.url", settings.db_url)
 
 target_metadata = Base.metadata
 
