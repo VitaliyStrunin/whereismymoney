@@ -1,7 +1,11 @@
 from flask import Blueprint, jsonify, request
 
 from backend.api.dependencies import get_db_session
-from backend.core.exceptions import ExpenseNotFoundError
+from backend.core.exceptions import (
+    CategoryNotFoundError,
+    ExpenseNotFoundError,
+    TagNotFoundError,
+)
 from backend.schemas.expense import (
     ExpenseCreateDTO,
     ExpenseListQueryDTO,
@@ -33,13 +37,18 @@ def create_expense():
 
     with get_db_session() as session:
         service = ExpenseService(session)
-        expense = service.create_expense(create_dto.amount,
-                                         create_dto.description,
-                                         create_dto.expense_date,
-                                         create_dto.category_id,
-                                         create_dto.tag_ids,
-                                         )
-        response_dto = ExpenseResponseDTO.model_validate(expense)
+        try:
+            expense = service.create_expense(create_dto.amount,
+                                            create_dto.description,
+                                            create_dto.expense_date,
+                                            create_dto.category_id,
+                                            create_dto.tag_ids,
+                                            )
+            response_dto = ExpenseResponseDTO.model_validate(expense)
+        except CategoryNotFoundError:
+            return jsonify({"error": "Category not found"}), 404
+        except TagNotFoundError:
+            return jsonify({"error": "Tag not found"}), 404
 
         return jsonify(response_dto.model_dump(mode='json')), 201
 
@@ -66,6 +75,10 @@ def update_expense(expense_id: int):
         try:
             updated_expense = service.update_expense(expense_id, update_data)
             response_dto = ExpenseResponseDTO.model_validate(updated_expense)
+        except CategoryNotFoundError:
+            return jsonify({"error": "Category not found"}), 404
+        except TagNotFoundError:
+            return jsonify({"error": "Tag not found"}), 404
         except ExpenseNotFoundError:
             return jsonify({"error": "Expense not found"}), 404
         except Exception:

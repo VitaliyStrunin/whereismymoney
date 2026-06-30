@@ -8,3 +8,7 @@ class TagNotFoundError(Exception):
 
 class ExpenseNotFoundError(Exception):
     pass
+
+
+class CategoryInUseError(Exception):
+    pass

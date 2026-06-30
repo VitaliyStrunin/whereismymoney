@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from backend.api.dependencies import get_db_session
-from backend.core.exceptions import CategoryNotFoundError
+from backend.core.exceptions import CategoryInUseError, CategoryNotFoundError
 from backend.schemas.category import (
     CategoryCreateDTO,
     CategoryListQueryDTO,
@@ -72,6 +72,8 @@ def delete_category(category_id: int):
         service = CategoryService(session)
         try:
             service.delete_category(category_id)
+        except CategoryInUseError:
+            return jsonify({"error": "Category is used by expenses"}), 409
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
 

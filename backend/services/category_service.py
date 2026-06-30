@@ -1,6 +1,7 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from backend.core.exceptions import CategoryNotFoundError
+from backend.core.exceptions import CategoryInUseError, CategoryNotFoundError
 from backend.models.category import Category
 from backend.repositories.category_repository import CategoryRepository
 
@@ -44,6 +45,9 @@ class CategoryService:
             category = self.get_by_id(category_id)
             self.category_repo.delete(category)
             self.session.commit()
+        except IntegrityError as err:
+            self.session.rollback()
+            raise CategoryInUseError("Category is used by expenses") from err
         except Exception:
             self.session.rollback()
             raise

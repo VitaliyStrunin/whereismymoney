@@ -152,3 +152,18 @@ def test_delete_category(client, create_category):
 
     assert response.status_code == 200
     assert check_response.status_code == 404
+
+
+def test_delete_category_not_found(client):
+    response = client.delete("/categories/99999999")
+
+    assert response.status_code == 404
+
+
+def test_delete_used_category(client, create_category, create_expense):
+    category = create_category("SomeCategory")
+    create_expense(category=category)
+
+    response = client.delete(f"/categories/{category.id}")
+
+    assert response.status_code == 409
