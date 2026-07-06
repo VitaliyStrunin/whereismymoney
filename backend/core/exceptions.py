@@ -2,6 +2,10 @@ class CategoryNotFoundError(Exception):
     pass
 
 
+class CategoryInUseError(Exception):
+    pass
+
+
 class TagNotFoundError(Exception):
     pass
 
@@ -10,5 +14,21 @@ class ExpenseNotFoundError(Exception):
     pass
 
 
-class CategoryInUseError(Exception):
+class UserNotFoundError(Exception):
+    pass
+
+
+class UserAlreadyExistsError(Exception):
+    pass
+
+
+class InvalidCredentialsError(Exception):
+    pass
+
+
+class AccessTokenExpiredError(Exception):
+    pass
+
+
+class InvalidAccessTokenError(Exception):
     pass
