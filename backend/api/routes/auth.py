@@ -30,7 +30,7 @@ def register_user(body: UserCreateDTO):
         except UserAlreadyExistsError:
             return jsonify({"error": "User already exists"}), 409
 
-        return jsonify(response_dto.model_dump(mode="json")), 200
+        return jsonify(response_dto.model_dump(mode="json")), 201
 
 
 @auth_bp.post("/login")
@@ -50,7 +50,7 @@ def login(login_data: UserLoginDTO):
 
 @auth_bp.get("/me")
 def get_me():
-    current_user_id = get_current_user_id
+    current_user_id = get_current_user_id()
 
     with get_db_session() as session:
         service = AuthService(session)
