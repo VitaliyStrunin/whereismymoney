@@ -5,8 +5,8 @@ from backend.api.routes.auth import auth_bp
 from backend.api.routes.categories import categories_bp
 from backend.api.routes.expenses import expenses_bp
 from backend.api.routes.tags import tags_bp
-from backend.database.session import session_maker
 from backend.core.exceptions import AccessTokenExpiredError, InvalidAccessTokenError
+from backend.database.session import session_maker
 
 
 def create_app(config: dict | None = None, session_factory=None) -> Flask:

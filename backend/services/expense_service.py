@@ -27,17 +27,18 @@ class ExpenseService:
                        description: str,
                        expense_date: date,
                        category_id: int,
-                       tag_ids: list
+                       tag_ids: list,
+                       user_id: int
                        ) -> Expense:
         try:
-            category = self.category_repo.get_by_id(category_id)
+            category = self.category_repo.get_by_id(category_id=category_id, user_id=user_id)
             if category is None:
                 raise CategoryNotFoundError
         except CategoryNotFoundError:
             raise
 
         try:
-            tags = self.tag_repo.get_by_ids(tag_ids)
+            tags = self.tag_repo.get_by_ids(tag_ids=tag_ids, user_id=user_id)
             if len(tags) != len(set(tag_ids)):
                 raise TagNotFoundError
         except TagNotFoundError:
@@ -49,6 +50,7 @@ class ExpenseService:
                 expense_date=expense_date,
                 category=category,
                 tags=tags,
+                user_id=user_id
             )
             self.session.commit()
             return expense
@@ -56,23 +58,23 @@ class ExpenseService:
             self.session.rollback()
             raise
 
-    def get_by_id(self, expense_id: int) -> Expense:
-        expense = self.expense_repo.get_by_id(expense_id)
+    def get_by_id(self, expense_id: int, user_id: int) -> Expense:
+        expense = self.expense_repo.get_by_id(expense_id=expense_id, user_id=user_id)
         if expense is None:
             raise ExpenseNotFoundError(f"Expense with id {expense_id} not found")
         return expense
 
-    def get_list(self, limit: int = 100, offset: int = 0) -> list[Expense]:
-        expenses = self.expense_repo.get_list(limit, offset)
+    def get_list(self, limit: int, offset: int, user_id: int) -> list[Expense]:
+        expenses = self.expense_repo.get_list(limit=limit, offset=offset, user_id=user_id)
         return expenses
 
-    def update_expense(self, expense_id: int, update_data: dict) -> Expense:
+    def update_expense(self, expense_id: int, update_data: dict, user_id: int) -> Expense:
         try:
-            expense = self.get_by_id(expense_id)
+            expense = self.get_by_id(expense_id=expense_id, user_id=user_id)
 
             category = None
             if "category_id" in update_data:
-                category = self.category_repo.get_by_id(update_data['category_id'])
+                category = self.category_repo.get_by_id(update_data['category_id'], user_id=user_id)
 
                 if category is None:
                     raise CategoryNotFoundError(
@@ -82,7 +84,7 @@ class ExpenseService:
             tags = None
             if "tag_ids" in update_data:
                 tag_ids = update_data['tag_ids'] or []
-                tags = self.tag_repo.get_by_ids(tag_ids)
+                tags = self.tag_repo.get_by_ids(tag_ids, user_id=user_id)
 
                 if len(tags) != len(set(tag_ids)):
                     raise TagNotFoundError("One or more tags not found")
@@ -101,9 +103,9 @@ class ExpenseService:
             self.session.rollback()
             raise
 
-    def delete_expense(self, expense_id: int) -> None:
+    def delete_expense(self, expense_id: int, user_id: int) -> None:
         try:
-            expense = self.get_by_id(expense_id)
+            expense = self.get_by_id(expense_id=expense_id, user_id=user_id)
             self.expense_repo.delete(expense)
             self.session.commit()
         except Exception:

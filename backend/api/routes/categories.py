@@ -1,7 +1,11 @@
 from flask import Blueprint, jsonify, request
 
-from backend.api.dependencies import get_db_session
-from backend.core.exceptions import CategoryInUseError, CategoryNotFoundError
+from backend.api.dependencies import get_current_user_id, get_db_session
+from backend.core.exceptions import (
+    CategoryAlreadyExistsError,
+    CategoryInUseError,
+    CategoryNotFoundError,
+)
 from backend.schemas.category import (
     CategoryCreateDTO,
     CategoryListQueryDTO,
@@ -15,11 +19,12 @@ categories_bp = Blueprint("categories", __name__, url_prefix="/categories")
 
 @categories_bp.get("")
 def get_categories():
+    user_id = get_current_user_id()
     query_params = CategoryListQueryDTO.model_validate(request.args.to_dict())
 
     with get_db_session() as session:
         service = CategoryService(session)
-        categories = service.get_list(limit=query_params.limit, offset=query_params.offset)
+        categories = service.get_list(limit=query_params.limit, offset=query_params.offset, user_id=user_id)
 
         return jsonify([
             CategoryResponseDTO.model_validate(category).model_dump(mode="json")
@@ -29,22 +34,28 @@ def get_categories():
 
 @categories_bp.post("")
 def create_category():
+    user_id = get_current_user_id()
     category_dto = CategoryCreateDTO.model_validate(request.get_json(silent=True) or {})
 
     with get_db_session() as session:
-        service = CategoryService(session)
-        category = service.create_category(category_dto.name)
-        response_dto = CategoryResponseDTO.model_validate(category)
+        try:
+            service = CategoryService(session)
+            category = service.create_category(name=category_dto.name, user_id=user_id)
+            response_dto = CategoryResponseDTO.model_validate(category)
+        except CategoryAlreadyExistsError:
+            return jsonify({"error": "Category already exists"}), 409
 
         return jsonify(response_dto.model_dump(mode="json")), 201
 
 
 @categories_bp.get("/<int:category_id>")
 def get_category(category_id: int):
+    user_id = get_current_user_id()
+
     with get_db_session() as session:
         service = CategoryService(session)
         try:
-            category = service.get_by_id(category_id)
+            category = service.get_by_id(category_id=category_id, user_id=user_id)
             response_dto = CategoryResponseDTO.model_validate(category)
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
@@ -54,24 +65,30 @@ def get_category(category_id: int):
 
 @categories_bp.patch("/<int:category_id>")
 def update_category(category_id: int):
+    user_id = get_current_user_id()
     category_dto = CategoryUpdateDTO.model_validate(request.get_json(silent=True) or {})
+
     with get_db_session() as session:
         service = CategoryService(session)
         try:
-            category = service.update_category(category_id, category_dto.name)
+            category = service.update_category(category_id=category_id, name=category_dto.name, user_id=user_id)
             response_dto = CategoryResponseDTO.model_validate(category)
         except CategoryNotFoundError:
             return jsonify({"error": "Category not found"}), 404
+        except CategoryAlreadyExistsError:
+            return jsonify({"error": "Category already exists"}), 409
 
         return jsonify(response_dto.model_dump(mode="json")), 200
 
 
 @categories_bp.delete("/<int:category_id>")
 def delete_category(category_id: int):
+    user_id = get_current_user_id()
+
     with get_db_session() as session:
         service = CategoryService(session)
         try:
-            service.delete_category(category_id)
+            service.delete_category(category_id=category_id, user_id=user_id)
         except CategoryInUseError:
             return jsonify({"error": "Category is used by expenses"}), 409
         except CategoryNotFoundError:

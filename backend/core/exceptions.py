@@ -6,7 +6,15 @@ class CategoryInUseError(Exception):
     pass
 
 
+class CategoryAlreadyExistsError(Exception):
+    pass
+
+
 class TagNotFoundError(Exception):
+    pass
+
+
+class TagAlreadyExistsError(Exception):
     pass
 
 

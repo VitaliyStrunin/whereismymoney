@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database.db import Base
 
@@ -17,3 +17,7 @@ class User(Base):
         server_default=func.now(),
         nullable=False
     )
+
+    categories = relationship("Category", back_populates="user")
+    tags = relationship("Tag", back_populates="user")
+    expenses = relationship("Expense", back_populates="user")

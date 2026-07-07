@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from alembic.config import Config
@@ -72,10 +73,14 @@ def clean_db(test_session_factory):
 
 
 @pytest.fixture
-def create_category(test_session_factory):
-    def _create_category(name: str) -> Category:
+def create_category(test_session_factory, default_user):
+    def _create_category(name: str | None = None, user: User | None = None) -> Category:
+        user = user or default_user
+        name = name or f"cat-{uuid4().hex}"
+
         with test_session_factory() as session:
-            category = Category(name=name)
+            user = session.merge(user)
+            category = Category(name=name, user=user)
             session.add(category)
             session.commit()
             session.refresh(category)
@@ -85,10 +90,14 @@ def create_category(test_session_factory):
 
 
 @pytest.fixture
-def create_tag(test_session_factory):
-    def _create_tag(name: str) -> Tag:
+def create_tag(test_session_factory, default_user):
+    def _create_tag(name: str | None = None, user: User | None = None) -> Tag:
+        user = user or default_user
+        name = name or f"tag-{uuid4().hex}"
+
         with test_session_factory() as session:
-            tag = Tag(name=name)
+            user = session.merge(user)
+            tag = Tag(name=name, user=user)
             session.add(tag)
             session.commit()
             session.refresh(tag)
@@ -100,24 +109,32 @@ def create_tag(test_session_factory):
 @pytest.fixture
 def create_expense(test_session_factory,
                    create_category,
-                   create_tag):
+                   create_tag,
+                   default_user):
     def _create_expense(
         amount: Decimal = Decimal("100.0"),
-        description: str = "Test expense",
+        description: str | None = None,
         expense_date: date = date(1970, 1, 1),
         category: Category | None = None,
         tags: list[Tag] | None = None,
+        user: User | None = None
         ) -> Expense:
 
+        user = user or default_user
+
         if category is None:
-            category = create_category("TestCategory")
+            category = create_category(user=user)
 
         if tags is None:
-            tags = [create_tag("TestTag1"), create_tag("TestTag2")]
+            tags = [create_tag(user=user), create_tag(user=user)]
+
+
+        description = description or f"desc-{uuid4().hex}"
 
         with test_session_factory() as session:
             category = session.merge(category)
             tags = [session.merge(tag) for tag in tags]
+            user = session.merge(user)
 
             expense = Expense(
                 amount=amount,
@@ -125,6 +142,7 @@ def create_expense(test_session_factory,
                 expense_date=expense_date,
                 category=category,
                 tags=tags,
+                user=user
             )
 
             session.add(expense)
@@ -155,8 +173,18 @@ def create_user(test_session_factory):
 
 
 @pytest.fixture
-def auth_headers(create_user):
-    user = create_user()
-    access_token = create_access_token(user.id)
+def default_user(create_user):
+    return create_user()
 
-    return {"Authorization": f"Bearer {access_token}"}
+
+@pytest.fixture
+def default_user_auth_headers(default_user, make_auth_headers):
+    return make_auth_headers(default_user)
+
+
+@pytest.fixture
+def make_auth_headers():
+    def _make_auth_headers(user: User):
+        access_token = create_access_token(user.id)
+        return {"Authorization": f"Bearer {access_token}"}
+    return _make_auth_headers

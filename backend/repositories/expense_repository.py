@@ -19,6 +19,7 @@ class ExpenseRepository:
                expense_date: date,
                category: Category,
                tags: list[Tag],
+               user_id: int
                ) -> Expense:
         expense = Expense(
             amount=amount,
@@ -26,14 +27,15 @@ class ExpenseRepository:
             expense_date=expense_date,
             category=category,
             tags=tags,
+            user_id=user_id
         )
         self.session.add(expense)
         self.session.flush()
         return expense
 
-    def get_by_id(self, expense_id: int) -> Expense | None:
+    def get_by_id(self, expense_id: int, user_id: int) -> Expense | None:
         query = (select(Expense)
-                 .where(Expense.id == expense_id)
+                 .where(Expense.id == expense_id, Expense.user_id == user_id)
                  .options(
                         joinedload(Expense.category),
                         selectinload(Expense.tags),
@@ -42,12 +44,13 @@ class ExpenseRepository:
 
         return self.session.scalar(query)
 
-    def get_list(self, limit: int = 100, offset: int = 0) -> list[Expense]:
+    def get_list(self, limit: int, offset: int, user_id: int) -> list[Expense]:
         query = (select(Expense)
                  .options(
                         joinedload(Expense.category),
                         selectinload(Expense.tags),
                  )
+                 .where(Expense.user_id == user_id)
                  .order_by(Expense.id)
                  .limit(limit)
                  .offset(offset)
