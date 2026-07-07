@@ -9,11 +9,13 @@ from sqlalchemy.orm import sessionmaker
 
 from alembic import command
 from backend.core.config import settings
+from backend.core.security import create_access_token, hash_password
 from backend.main import create_app
 from backend.models.category import Category
 from backend.models.expense import Expense
 from backend.models.expense_tags import expense_tags
 from backend.models.tag import Tag
+from backend.models.user import User
 
 
 @pytest.fixture(scope="session")
@@ -64,6 +66,8 @@ def clean_db(test_session_factory):
         session.query(Expense).delete()
         session.query(Tag).delete()
         session.query(Category).delete()
+        session.query(User).delete()
+
         session.commit()
 
 
@@ -130,3 +134,29 @@ def create_expense(test_session_factory,
             return expense
 
     return _create_expense
+
+
+@pytest.fixture
+def create_user(test_session_factory):
+    def _create_user(
+        email: str = "testemail@gmail.com",
+        plain_password: str = "SomePlainPassword"
+    ):
+        with test_session_factory() as session:
+            user = User(
+                email=email,
+                password_hash=hash_password(plain_password=plain_password)
+            )
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return user
+    return _create_user
+
+
+@pytest.fixture
+def auth_headers(create_user):
+    user = create_user()
+    access_token = create_access_token(user.id)
+
+    return {"Authorization": f"Bearer {access_token}"}

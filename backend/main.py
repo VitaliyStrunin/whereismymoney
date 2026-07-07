@@ -6,6 +6,7 @@ from backend.api.routes.categories import categories_bp
 from backend.api.routes.expenses import expenses_bp
 from backend.api.routes.tags import tags_bp
 from backend.database.session import session_maker
+from backend.core.exceptions import AccessTokenExpiredError, InvalidAccessTokenError
 
 
 def create_app(config: dict | None = None, session_factory=None) -> Flask:
@@ -25,5 +26,18 @@ def create_app(config: dict | None = None, session_factory=None) -> Flask:
     def handle_validation_error(error: ValidationError):
         return jsonify({"error": error.errors(include_context=False)}), 400
 
+    @app.errorhandler(AccessTokenExpiredError)
+    def handle_access_token_expired(error: AccessTokenExpiredError):
+        response = jsonify({"error": "Access token expired"})
+        response.status_code = 401
+        response.headers["WWW-Authenticate"] = 'Bearer error="invalid_token"'
+        return response
+
+    @app.errorhandler(InvalidAccessTokenError)
+    def handle_invalid_access_token(error: InvalidAccessTokenError):
+        response = jsonify({"error": "Invalid or missing access token"})
+        response.status_code = 401
+        response.headers["WWW-Authenticate"] = 'Bearer error="invalid_token"'
+        return response
 
     return app

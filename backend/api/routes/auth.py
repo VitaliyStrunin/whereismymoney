@@ -35,12 +35,12 @@ def register_user(body: UserCreateDTO):
 
 @auth_bp.post("/login")
 @validate()
-def login(login_data: UserLoginDTO):
+def login(body: UserLoginDTO):
     with get_db_session() as session:
         service = AuthService(session)
 
         try:
-            access_token = service.login(login_data.email, login_data.plain_password)
+            access_token = service.login(body.email, body.plain_password)
             response_dto = TokenResponseDTO(access_token=access_token)
         except InvalidCredentialsError:
             return jsonify({"error": "Wrong login or password"}), 401
