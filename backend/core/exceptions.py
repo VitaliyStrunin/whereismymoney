@@ -40,3 +40,7 @@ class AccessTokenExpiredError(Exception):
 
 class InvalidAccessTokenError(Exception):
     pass
+
+
+class InvalidRefreshTokenError(Exception):
+    pass

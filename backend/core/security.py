@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -28,6 +31,7 @@ def create_access_token(user_id: int) -> str:
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
+
 def decode_access_token(token: str) -> int:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
@@ -45,3 +49,18 @@ def decode_access_token(token: str) -> int:
         raise AccessTokenExpiredError from err
     except (InvalidTokenError, KeyError, TypeError, ValueError) as err:
         raise InvalidAccessTokenError from err
+
+
+def generate_refresh_token() -> str:
+    refresh_token = secrets.token_urlsafe(64)
+    return refresh_token
+
+
+def hash_refresh_token(raw_token: str) -> str:
+    hashed_token = hmac.new(
+        settings.JWT_SECRET_KEY.encode(),
+        raw_token.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+    return hashed_token

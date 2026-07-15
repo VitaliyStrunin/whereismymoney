@@ -36,7 +36,14 @@ class Settings(BaseSettings):
         )
 
     JWT_SECRET_KEY: str = "ultrasecretkey-hide-it-in-prod-it-is-just-example-for-dev"
-    JWT_ACCESS_TOKEN_TTL_MINUTES: int = 30
+    JWT_ACCESS_TOKEN_TTL_MINUTES: int = 10
     JWT_ALGORITHM: str = "HS256"
+
+    REFRESH_TOKEN_TTL_DAYS: int = 30
+    REFRESH_TOKEN_COOKIE_NAME: str = "wimm_refresh_token"
+    REFRESH_TOKEN_SECURE: bool = False # True for production
+    REFRESH_TOKEN_SAMESITE: str = "Lax"
+    REFRESH_TOKEN_SECRET: str = "ultrasecretkey-hide-it-in-prod-it-is-just-example-for-dev"
+
 
 settings = Settings()

@@ -21,3 +21,4 @@ class User(Base):
     categories = relationship("Category", back_populates="user")
     tags = relationship("Tag", back_populates="user")
     expenses = relationship("Expense", back_populates="user")
+    refresh_sessions = relationship("RefreshSession", back_populates="user")

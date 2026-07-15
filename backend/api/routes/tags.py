@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from backend.api.dependencies import get_current_user_id, get_db_session
-from backend.core.exceptions import TagNotFoundError, TagAlreadyExistsError
+from backend.core.exceptions import TagAlreadyExistsError, TagNotFoundError
 from backend.schemas.tags import (
     TagCreateDTO,
     TagListQueryDTO,
