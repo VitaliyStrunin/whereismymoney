@@ -5,7 +5,7 @@ from backend.api.routes.auth import auth_bp
 from backend.api.routes.categories import categories_bp
 from backend.api.routes.expenses import expenses_bp
 from backend.api.routes.tags import tags_bp
-from backend.core.exceptions import AccessTokenExpiredError, InvalidAccessTokenError
+from backend.core.exceptions import AccessTokenExpiredError, InvalidAccessTokenError, InvalidRefreshTokenError
 from backend.database.session import session_maker
 
 
@@ -36,6 +36,13 @@ def create_app(config: dict | None = None, session_factory=None) -> Flask:
     @app.errorhandler(InvalidAccessTokenError)
     def handle_invalid_access_token(error: InvalidAccessTokenError):
         response = jsonify({"error": "Invalid or missing access token"})
+        response.status_code = 401
+        response.headers["WWW-Authenticate"] = 'Bearer error="invalid_token"'
+        return response
+
+    @app.errorhandler(InvalidRefreshTokenError)
+    def handle_invalid_refresh_token(error:InvalidRefreshTokenError):
+        response = jsonify({"error": "Invalid or expired refresh token"})
         response.status_code = 401
         response.headers["WWW-Authenticate"] = 'Bearer error="invalid_token"'
         return response

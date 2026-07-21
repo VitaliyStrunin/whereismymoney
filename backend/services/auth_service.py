@@ -104,7 +104,7 @@ class AuthService:
             return
 
         try:
-            self.refresh_session_repo.revoke(raw_refresh_token)
+            self.refresh_session_repo.revoke(refresh_session)
             self.session.commit()
         except Exception:
             self.session.rollback()

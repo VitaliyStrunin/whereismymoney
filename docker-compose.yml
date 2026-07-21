@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: whereismymoney-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: whereismymoney-app
+    restart: unless-stopped
+
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ACCESS_TOKEN_TTL_MINUTES: ${JWT_ACCESS_TOKEN_TTL_MINUTES}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+
+      REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS}
+      REFRESH_TOKEN_COOKIE_NAME: ${REFRESH_TOKEN_COOKIE_NAME}
+      REFRESH_TOKEN_SECURE: ${REFRESH_TOKEN_SECURE}
+      REFRESH_TOKEN_SAMESITE: ${REFRESH_TOKEN_SAMESITE}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+
+    ports:
+      - "${APP_PORT}:8000"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+volumes:
+  postgres_data:
